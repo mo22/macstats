@@ -13,12 +13,13 @@ def pilToNSImage(img):
             buf.getvalue(), len(buf.getvalue())
         )
     )
+    nsimg.setSize_(24, 24)
     return nsimg
 
 
 class AppDelegate(AppKit.NSObject):
     def updateImage(self):
-        img = PIL.Image.new('RGB', (24, 24), color='red')
+        img = PIL.Image.new('RGB', (48, 48), color='red')
         self.statusItem.setImage_(pilToNSImage(img))
 
     def applicationDidFinishLaunching_(self, notification):
