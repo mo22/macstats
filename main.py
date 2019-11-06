@@ -8,6 +8,10 @@ class AppDelegate(AppKit.NSObject):
         print('AppDelegate.applicationDidFinishLaunching')
         self.statusItem = AppKit.NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
         self.statusItem.setTitle_('Hello')
+        # self.statusItem.setButton_()
+
+        # create dynamic image?
+
         # self.systray_item.button().setImage_(icon_load('icons/tray_error.png'))
         # res = AppKit.NSImage.alloc().initWithContentsOfFile_(name)
         # <key>LSUIElement</key>
