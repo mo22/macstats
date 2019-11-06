@@ -2,6 +2,7 @@ import io
 import time
 import traceback
 
+import objc
 import AppKit
 import PyObjCTools.AppHelper
 
@@ -69,6 +70,27 @@ class AppDelegate(AppKit.NSObject):
             True
         )
 
+        # https://github.com/a2/touch-baer/blob/master/TouchBarTest/AppDelegate.m
+        DFR = {}
+        objc.objc.loadBundleFunctions(
+            None,
+            DFR,
+            [
+                ('DFRElementSetControlStripPresenceForIdentifier', objc._C_VOID + objc._C_ID + objc._C_BOOL),
+                ('DFRSystemModalShowsCloseBoxWhenFrontMost', objc._C_VOID + objc._C_BOOL),
+            ]
+        )
+        DFR['DFRSystemModalShowsCloseBoxWhenFrontMost'](True)
+        self.touchBarItem = AppKit.NSCustomTouchBarItem.alloc().initWithIdentifier_(
+            'test'
+        )
+        button = AppKit.NSButton.buttonWithTitle_target_action_(
+            'XX', self, 'onquit'
+        )
+        self.touchBarItem.setView_(button)
+        AppKit.NSTouchBarItem.addSystemTrayItem_(self.touchBarItem)
+        DFR['DFRElementSetControlStripPresenceForIdentifier']('test', True)
+
     def ontimer(self):
         print('AppDelegate.timer')
         self.updateImage()
@@ -76,6 +98,10 @@ class AppDelegate(AppKit.NSObject):
 
     def onquit_(self, nsmenuitem):
         print("onquit_")
+        AppKit.NSApplication.sharedApplication().terminate_(None)
+
+    def onquit(self):
+        print("onquit")
         AppKit.NSApplication.sharedApplication().terminate_(None)
 
     def ontest_(self, nsmenuitem):

@@ -1,31 +1,9 @@
-# noqa: E501
-# flake8: noqa
-# :PEP8 -E501
-# pep8: disable=E501
-# noqa: ignore=E501
-# flake8: ignore=F403,E501
+import psutil
 
-import Cocoa  # pip install pyobjc-framework-cocoa
-import PyObjCTools.AppHelper
-# import AppKit
-import psutil  # pip install psutil
-import PIL
-
-
-# print(Cocoa.NSTouchBarItem)  # works`
-# print(Cocoa.NSTouchBarItem.addSystemTrayItem)  # does not work
-
-# print('virtual_memory', psutil.virtual_memory())
-#
-# print('disk_io_counters', psutil.disk_io_counters(True))
-#
-# print('cpu_freq', psutil.cpu_freq(True))
-#
-# print('cpu_percent', psutil.cpu_percent(0, True))
-#
-#
-# app = Cocoa.NSApplication.sharedApplication()
-# print('app', app)
+print('virtual_memory', psutil.virtual_memory())
+print('disk_io_counters', psutil.disk_io_counters(True))
+print('cpu_freq', psutil.cpu_freq(True))
+print('cpu_percent', psutil.cpu_percent(0, True))
 
 # Cocoa.NSApplication.sharedApplication().setIsAutomaticCustomizeTouchBarMenuItemEnabled(True)  # does not exist`
 # Cocoa.NSApplication.sharedApplication().isAutomaticCustomizeTouchBarMenuItemEnabled = True  # read only`
@@ -68,15 +46,3 @@ import PIL
 # + (void)minimizeSystemModalTouchBar:(NSTouchBar *)touchBar;
 #
 # @end
-
-
-# Initiate the contrller with a XIB
-# viewController = SimpleXibDemoController.alloc().initWithWindowNibName_("SimpleXibDemo")
-
-# Show the window
-# viewController.showWindow_(viewController)
-
-# Bring app to top
-# Cocoa.NSApp.activateIgnoringOtherApps_(True)
-
-# PyObjCTools.AppHelper.runEventLoop()
