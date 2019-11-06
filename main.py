@@ -1,8 +1,11 @@
+import io
+import time
+import traceback
+
 import AppKit
 import PyObjCTools.AppHelper
-import traceback
+
 from PIL import Image, ImageDraw, ImageFont
-import io
 
 
 def pilToNSImage(img):
@@ -20,11 +23,12 @@ def pilToNSImage(img):
 
 class AppDelegate(AppKit.NSObject):
     def updateImage(self):
+        val = str(int(time.time()) % 100)
         img = Image.new('RGBA', (48, 48), color='#00000000')
         # font = ImageFont.truetype('Arial Unicode.ttf', 22)
         font = ImageFont.truetype('Avenir.ttc', 22)
         draw = ImageDraw.Draw(img)
-        draw.text((0, 0), '99', fill='#000000', font=font)
+        draw.text((0, 0), val, fill='#000000', font=font)
         del draw
         del font
         self.statusItem.setImage_(pilToNSImage(img))
@@ -56,6 +60,19 @@ class AppDelegate(AppKit.NSObject):
         menuItem1.setTarget_(appDelegate)
         menuItem1.setAction_('onquit:')
         menu.addItem_(menuItem1)
+
+        self.timer = AppKit.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            0.5,
+            self,
+            'ontimer',
+            None,
+            True
+        )
+
+    def ontimer(self):
+        print('AppDelegate.timer')
+        self.updateImage()
+        pass
 
     def onquit_(self, nsmenuitem):
         print("onquit_")
