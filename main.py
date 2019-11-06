@@ -1,7 +1,7 @@
 import AppKit
 import PyObjCTools.AppHelper
 import traceback
-from PIL import Image, ImageDraw, ImageFont, ImageDraw2
+from PIL import Image, ImageDraw, ImageFont
 import io
 
 
@@ -21,7 +21,8 @@ def pilToNSImage(img):
 class AppDelegate(AppKit.NSObject):
     def updateImage(self):
         img = Image.new('RGBA', (48, 48), color='#00000000')
-        font = ImageFont.truetype('Arial Unicode.ttf', 22)
+        # font = ImageFont.truetype('Arial Unicode.ttf', 22)
+        font = ImageFont.truetype('Avenir.ttc', 22)
         draw = ImageDraw.Draw(img)
         draw.text((0, 0), '99', fill='#000000', font=font)
         del draw
