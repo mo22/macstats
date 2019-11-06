@@ -2,6 +2,8 @@ import io
 import time
 import traceback
 
+import psutil
+
 import objc
 import AppKit
 import PyObjCTools.AppHelper
@@ -94,7 +96,11 @@ class AppDelegate(AppKit.NSObject):
     def ontimer(self):
         print('AppDelegate.timer')
         self.updateImage()
-        pass
+
+        print('virtual_memory', psutil.virtual_memory())
+        print('disk_io_counters', psutil.disk_io_counters(True))
+        print('cpu_freq', psutil.cpu_freq(True))
+        print('cpu_percent', psutil.cpu_percent(0, True))
 
     def onquit_(self, nsmenuitem):
         print("onquit_")
