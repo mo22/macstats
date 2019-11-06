@@ -1,5 +1,4 @@
 import io
-import time
 import traceback
 
 import psutil
@@ -9,6 +8,23 @@ import AppKit
 import PyObjCTools.AppHelper
 
 from PIL import Image, ImageDraw, ImageFont
+
+
+if True:
+    def DFRElementSetControlStripPresenceForIdentifier(v1: str, v2: bool) -> None:
+        pass
+
+    def DFRSystemModalShowsCloseBoxWhenFrontMost(v1: bool) -> None:
+        pass
+
+    objc.objc.loadBundleFunctions(
+        None,
+        globals(),
+        [
+            ('DFRElementSetControlStripPresenceForIdentifier', objc._C_VOID + objc._C_ID + objc._C_BOOL),
+            ('DFRSystemModalShowsCloseBoxWhenFrontMost', objc._C_VOID + objc._C_BOOL),
+        ]
+    )
 
 
 def pilToNSImage(img):
@@ -26,12 +42,14 @@ def pilToNSImage(img):
 
 class AppDelegate(AppKit.NSObject):
     def updateImage(self):
-        val = str(int(time.time()) % 100)
-        img = Image.new('RGBA', (48, 48), color='#00000000')
+        cpu = psutil.cpu_percent(0, True)
+        cpu_max = max(cpu)
+        cpu_avg = sum(cpu) / len(cpu)
+        img = Image.new('RGBA', (120, 48), color='#00000000')
         # font = ImageFont.truetype('Arial Unicode.ttf', 22)
         font = ImageFont.truetype('Avenir.ttc', 22)
         draw = ImageDraw.Draw(img)
-        draw.text((0, 0), val, fill='#000000', font=font)
+        draw.text((0, 0), f"CPU {int(cpu_max)} {int(cpu_avg)}", fill='#000000', font=font)
         del draw
         del font
         self.statusItem.setImage_(pilToNSImage(img))
@@ -73,34 +91,33 @@ class AppDelegate(AppKit.NSObject):
         )
 
         # https://github.com/a2/touch-baer/blob/master/TouchBarTest/AppDelegate.m
-        DFR = {}
-        objc.objc.loadBundleFunctions(
-            None,
-            DFR,
-            [
-                ('DFRElementSetControlStripPresenceForIdentifier', objc._C_VOID + objc._C_ID + objc._C_BOOL),
-                ('DFRSystemModalShowsCloseBoxWhenFrontMost', objc._C_VOID + objc._C_BOOL),
-            ]
-        )
-        DFR['DFRSystemModalShowsCloseBoxWhenFrontMost'](True)
+        DFRSystemModalShowsCloseBoxWhenFrontMost(True)
         self.touchBarItem = AppKit.NSCustomTouchBarItem.alloc().initWithIdentifier_(
             'test'
         )
-        button = AppKit.NSButton.buttonWithTitle_target_action_(
-            'XX', self, 'onquit'
+        img = Image.new('RGBA', (120, 48), color='#00000000')
+        font = ImageFont.truetype('Avenir.ttc', 44)
+        draw = ImageDraw.Draw(img)
+        draw.text((0, 0), f"Hello", fill='#ff00ff', font=font)
+        del draw
+        del font
+        button = AppKit.NSButton.buttonWithImage_target_action_(
+            pilToNSImage(img), self, 'onquit'
         )
+        # button = AppKit.NSButton.buttonWithTitle_target_action_(
+        #     'XX', self, 'onquit'
+        # )
         self.touchBarItem.setView_(button)
         AppKit.NSTouchBarItem.addSystemTrayItem_(self.touchBarItem)
-        DFR['DFRElementSetControlStripPresenceForIdentifier']('test', True)
+        DFRElementSetControlStripPresenceForIdentifier('test', True)
 
     def ontimer(self):
-        print('AppDelegate.timer')
         self.updateImage()
-
-        print('virtual_memory', psutil.virtual_memory())
-        print('disk_io_counters', psutil.disk_io_counters(True))
-        print('cpu_freq', psutil.cpu_freq(True))
-        print('cpu_percent', psutil.cpu_percent(0, True))
+        # print('virtual_memory', psutil.virtual_memory())
+        # print('disk_io_counters', psutil.disk_io_counters(True))
+        # print('net_io_counters', psutil.net_io_counters(True))
+        # print('cpu_freq', psutil.cpu_freq(True))
+        # print('cpu_percent', psutil.cpu_percent(0, True))
 
     def onquit_(self, nsmenuitem):
         print("onquit_")
