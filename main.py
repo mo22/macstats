@@ -2,6 +2,7 @@ import AppKit
 import PyObjCTools.AppHelper
 import traceback
 import PIL.Image
+import PIL.ImageDraw
 import io
 
 
@@ -13,13 +14,16 @@ def pilToNSImage(img):
             buf.getvalue(), len(buf.getvalue())
         )
     )
-    nsimg.setSize_(24, 24)
+    del buf
+    nsimg.setSize_((img.size[0] / 2, img.size[1] / 2))
     return nsimg
 
 
 class AppDelegate(AppKit.NSObject):
     def updateImage(self):
         img = PIL.Image.new('RGB', (48, 48), color='red')
+        draw = PIL.ImageDraw.Draw(img)
+        del draw
         self.statusItem.setImage_(pilToNSImage(img))
 
     def applicationDidFinishLaunching_(self, notification):
