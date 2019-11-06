@@ -67,8 +67,6 @@ if __name__ == '__main__':
     app = AppKit.NSApplication.sharedApplication()
     app.setDelegate_(appDelegate)
     app.activateIgnoringOtherApps_(True)
-    # app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyRegular)
     app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyAccessory)
-
     PyObjCTools.AppHelper.installMachInterrupt()
     PyObjCTools.AppHelper.runEventLoop()
