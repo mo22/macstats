@@ -118,6 +118,13 @@ class AppDelegate(AppKit.NSObject):
         # print('net_io_counters', psutil.net_io_counters(True))
         # print('cpu_freq', psutil.cpu_freq(True))
         # print('cpu_percent', psutil.cpu_percent(0, True))
+        img = Image.new('RGBA', (120, 48), color='#00000000')
+        font = ImageFont.truetype('Avenir.ttc', 44)
+        draw = ImageDraw.Draw(img)
+        draw.text((0, 0), f"NEW", fill='#ff00ff', font=font)
+        del draw
+        del font
+        self.touchBarItem.view().setImage_(pilToNSImage(img))
 
     def onquit_(self, nsmenuitem):
         print("onquit_")
