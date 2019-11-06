@@ -1,8 +1,7 @@
 import AppKit
 import PyObjCTools.AppHelper
 import traceback
-import PIL.Image
-import PIL.ImageDraw
+from PIL import Image, ImageDraw, ImageFont, ImageDraw2
 import io
 
 
@@ -21,16 +20,19 @@ def pilToNSImage(img):
 
 class AppDelegate(AppKit.NSObject):
     def updateImage(self):
-        img = PIL.Image.new('RGB', (48, 48), color='red')
-        draw = PIL.ImageDraw.Draw(img)
+        img = Image.new('RGBA', (48, 48), color='#00000000')
+        font = ImageFont.truetype('Arial Unicode.ttf', 22)
+        draw = ImageDraw.Draw(img)
+        draw.text((0, 0), '99', fill='#000000', font=font)
         del draw
+        del font
         self.statusItem.setImage_(pilToNSImage(img))
 
     def applicationDidFinishLaunching_(self, notification):
         print('AppDelegate.applicationDidFinishLaunching')
 
         self.statusItem = AppKit.NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
-        self.statusItem.setTitle_('Hello')
+        # self.statusItem.setTitle_('Hello')
         self.updateImage()
 
         menu = AppKit.NSMenu.alloc().initWithTitle_("Menu")
