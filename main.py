@@ -1,21 +1,26 @@
 import AppKit
 import PyObjCTools.AppHelper
 import traceback
+import PIL.Image
+import io
 
 
 class AppDelegate(AppKit.NSObject):
     def applicationDidFinishLaunching_(self, notification):
         print('AppDelegate.applicationDidFinishLaunching')
+
+        img = PIL.Image.new('RGB', (48, 48), color='red')
+        buf = io.BytesIO()
+        img.save(buf, format='PNG')
+        nsimg = AppKit.NSImage.alloc().initWithData_(
+            AppKit.NSData.dataWithBytes_length_(
+                buf.getvalue(), len(buf.getvalue())
+            )
+        )
+
         self.statusItem = AppKit.NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
         self.statusItem.setTitle_('Hello')
-        # self.statusItem.setButton_()
-
-        # create dynamic image?
-
-        # self.systray_item.button().setImage_(icon_load('icons/tray_error.png'))
-        # res = AppKit.NSImage.alloc().initWithContentsOfFile_(name)
-        # <key>LSUIElement</key>
-        # <true/>
+        self.statusItem.setImage_(nsimg)
 
         menu = AppKit.NSMenu.alloc().initWithTitle_("Menu")
         self.statusItem.setMenu_(menu)
@@ -41,17 +46,6 @@ class AppDelegate(AppKit.NSObject):
     def onquit_(self, nsmenuitem):
         print("onquit_")
         AppKit.NSApplication.sharedApplication().terminate_(None)
-
-    # def systray_setup(self):
-    #   self.systray_item = AppKit.NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
-    #   self.systray_item.button().setImage_(icon_load('icons/tray_error.png'))
-    #   self.systray_menu = AppKit.NSMenu.alloc().initWithTitle_("Menu")
-    #   self.systray_menu.setDelegate_(self)
-    #   self.systray_item.setMenu_(self.systray_menu)
-    #   self.systray_labelView = None
-    #   self.systray_timer = AppKit.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-    #     0.5, action_selector(lambda: self.systray_refresh()), 'action', None, True)
-    #
 
     def ontest_(self, nsmenuitem):
         try:

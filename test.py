@@ -9,7 +9,7 @@ import Cocoa  # pip install pyobjc-framework-cocoa
 import PyObjCTools.AppHelper
 # import AppKit
 import psutil  # pip install psutil
-
+import PIL
 
 
 # print(Cocoa.NSTouchBarItem)  # works`
