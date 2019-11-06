@@ -5,22 +5,28 @@ import PIL.Image
 import io
 
 
+def pilToNSImage(img):
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    nsimg = AppKit.NSImage.alloc().initWithData_(
+        AppKit.NSData.dataWithBytes_length_(
+            buf.getvalue(), len(buf.getvalue())
+        )
+    )
+    return nsimg
+
+
 class AppDelegate(AppKit.NSObject):
+    def updateImage(self):
+        img = PIL.Image.new('RGB', (24, 24), color='red')
+        self.statusItem.setImage_(pilToNSImage(img))
+
     def applicationDidFinishLaunching_(self, notification):
         print('AppDelegate.applicationDidFinishLaunching')
 
-        img = PIL.Image.new('RGB', (48, 48), color='red')
-        buf = io.BytesIO()
-        img.save(buf, format='PNG')
-        nsimg = AppKit.NSImage.alloc().initWithData_(
-            AppKit.NSData.dataWithBytes_length_(
-                buf.getvalue(), len(buf.getvalue())
-            )
-        )
-
         self.statusItem = AppKit.NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
         self.statusItem.setTitle_('Hello')
-        self.statusItem.setImage_(nsimg)
+        self.updateImage()
 
         menu = AppKit.NSMenu.alloc().initWithTitle_("Menu")
         self.statusItem.setMenu_(menu)
