@@ -2,6 +2,7 @@ import AppKit
 import objc
 
 scope = {}
+AppKit.NSTouchBarItem
 objc.objc.loadBundleFunctions(
     None,
     scope,
