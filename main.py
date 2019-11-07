@@ -25,7 +25,7 @@ class MovingAverage:
 
     def __call__(self, value: float) -> float:
         t = time.time()
-        if self.time is None:
+        if self.value is None:
             self.value = value
         elif value == 0:
             self.value = value
