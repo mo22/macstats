@@ -12,6 +12,7 @@ if __name__ == '__main__':
         except psutil.AccessDenied:
             pass
     net_last = psutil.net_io_counters(True)
+    disk_last = psutil.disk_io_counters(True)
 
     time.sleep(0.5)
 
@@ -23,17 +24,23 @@ if __name__ == '__main__':
     # print('psutil.cpu_percent', cpu)
     cpu_max = max(cpu)
     cpu_avg = sum(cpu) / len(cpu)
-    print(f"cpu max {cpu_max:.0f}% | avg {cpu_avg:.0f}%")
+    print(f"cpu: max {cpu_max:.0f}% | avg {cpu_avg:.0f}%")
     # which process?
 
     # memory?
     # print('psutil.virtual_memory', psutil.virtual_memory())
     mem = psutil.virtual_memory()
-    print(f"mem {mem.percent:.0f}%")
+    print(f"mem: {mem.percent:.0f}%")
 
     # check if high disk io?
+    disk = psutil.disk_io_counters(True)
+    for (dev, info) in disk.items():
+        last_info = disk_last[dev]
+        read = (info.read_bytes - last_info.read_bytes) / 1024 / 1024
+        write = (info.write_bytes - last_info.write_bytes) / 1024 / 1024
+        if read > 1 or write > 1:
+            print(f"disk {dev}: read {read:.0f} MB/s | write {write:.0f} MB/s")
     # -> which process?
-    # print('psutil.disk_io_counters', psutil.disk_io_counters(True))
 
     # check if high network io?
     # -> which process?
@@ -43,7 +50,7 @@ if __name__ == '__main__':
         recv = (info.bytes_recv - last_info.bytes_recv) / 0.5 * 8 / 1024 / 1024
         sent = (info.bytes_sent - last_info.bytes_sent) / 0.5 * 8 / 1024 / 1024
         if sent > 0.5 or recv > 0.5:
-            print('net', dev, recv, sent)
+            print(f"net {dev}: recv {recv:.0f} mbit/s | sent {sent:.0f} mbit/s")
 
     for process in processes:
         try:
