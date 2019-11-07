@@ -110,7 +110,7 @@ class AppDelegate(AppKit.NSObject):
         dev = self.sensor.get_disk_dev_most_active()
         read = self.ema_disk_read(self.sensor.get_disk_read_bytes_per_sec(dev) if dev else 0)
         write = self.ema_disk_write(self.sensor.get_disk_write_bytes_per_sec(dev) if dev else 0)
-        if write > 1024 * 1024:
+        if write > 1024 * 1024 and write > read:
             status_item = self.add_status_item('disk')
             status_item.setTitle_(f"{dev} write {(write / 1024 / 1024):.0f} MB/s")
         elif read > 1024 * 1024:
@@ -129,7 +129,7 @@ class AppDelegate(AppKit.NSObject):
         # EMA
         recv = self.ema_net_recv(self.sensor.get_net_recv_bytes_per_sec(dev) if dev else 0)
         sent = self.ema_net_sent(self.sensor.get_net_sent_bytes_per_sec(dev) if dev else 0)
-        if recv > 1024 * 1024:
+        if recv > 1024 * 1024 and recv > sent:
             status_item = self.add_status_item('net')
             status_item.setTitle_(f"{dev} recv {(recv / 1024 / 1024 * 8):.0f} MBit/s")
         elif sent > 1024 * 1024:
