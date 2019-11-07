@@ -10,6 +10,9 @@ import PyObjCTools.AppHelper
 from PIL import Image, ImageDraw, ImageFont
 
 
+# https://psutil.readthedocs.io/en/release-2.2.1/#psutil.Process.cpu_percent
+
+
 if True:
     def DFRElementSetControlStripPresenceForIdentifier(v1: str, v2: bool) -> None:
         pass
