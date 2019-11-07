@@ -40,10 +40,10 @@ class AppDelegate(AppKit.NSObject):
     status_items: Dict[str, AppKit.NSStatusItem] = {}
     cpu_warnings_menu: Optional[AppKit.NSMenu] = None
 
-    ema_disk_read = MovingAverage(30)
-    ema_disk_write = MovingAverage(30)
-    ema_net_sent = MovingAverage(30)
-    ema_net_recv = MovingAverage(30)
+    ema_disk_read = MovingAverage(0.5)
+    ema_disk_write = MovingAverage(0.5)
+    ema_net_sent = MovingAverage(0.5)
+    ema_net_recv = MovingAverage(0.5)
 
     @objc.python_method
     def pil_to_nsimage(self, img):
