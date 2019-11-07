@@ -52,6 +52,19 @@ class PsUtilSensor:
     def get_disk_devs(self) -> List[str]:
         return self.disk.keys()
 
+    def get_disk_dev_most_active(self) -> Optional[str]:
+        max_total = 0
+        max_dev = None
+        for dev in self.disk.keys():
+            total = (
+                self.get_disk_write_bytes_per_sec(dev)
+                + self.get_disk_read_bytes_per_sec(dev)
+            )
+            if total > max_total:
+                max_total = total
+                max_dev = dev
+        return max_dev
+
     def get_disk_write_bytes_per_sec(self, dev: str) -> float:
         if self.disk_last is None:
             return 0
@@ -68,6 +81,40 @@ class PsUtilSensor:
             / (self.time - self.time_last)
         )
 
+    def get_net_devs(self) -> List[str]:
+        return self.net.keys()
+
+    def get_net_dev_most_active(self) -> Optional[str]:
+        max_total = 0
+        max_dev = None
+        for dev in self.net.keys():
+            if dev.startswith('lo'):
+                continue
+            total = (
+                self.get_net_recv_bytes_per_sec(dev)
+                + self.get_net_sent_bytes_per_sec(dev)
+            )
+            if total > max_total:
+                max_total = total
+                max_dev = dev
+        return max_dev
+
+    def get_net_recv_bytes_per_sec(self, dev: str) -> float:
+        if self.net_last is None:
+            return 0
+        return (
+            (self.net[dev].bytes_recv - self.net_last[dev].bytes_recv)
+            / (self.time - self.time_last)
+        )
+
+    def get_net_sent_bytes_per_sec(self, dev: str) -> float:
+        if self.net_last is None:
+            return 0
+        return (
+            (self.net[dev].bytes_sent - self.net_last[dev].bytes_sent)
+            / (self.time - self.time_last)
+        )
+
     def get_processes_by_cpu(self):
         return sorted(
             [i for i in self.processes if i.cpu_percent is not None],
@@ -80,5 +127,7 @@ if __name__ == '__main__':
     time.sleep(0.5)
     sensor.refresh()
 
-    from pprint import pprint
-    pprint(sensor.get_processes_by_cpu()[0:10])
+    # from pprint import pprint
+    # pprint(sensor.get_processes_by_cpu()[0:10])
+    print(sensor.get_net_dev_most_active())
+    print(sensor.get_disk_dev_most_active())
