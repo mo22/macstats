@@ -13,24 +13,24 @@ from PIL import Image, ImageDraw, ImageFont
 from typing import Dict, Optional
 
 
-def pilToNSImage(img):
-    buf = io.BytesIO()
-    img.save(buf, format='PNG')
-    nsimg = AppKit.NSImage.alloc().initWithData_(
-        AppKit.NSData.dataWithBytes_length_(
-            buf.getvalue(), len(buf.getvalue())
-        )
-    )
-    del buf
-    nsimg.setSize_((img.size[0] / 2, img.size[1] / 2))
-    return nsimg
-
-
 class AppDelegate(AppKit.NSObject):
     timer: AppKit.NSTimer
     sensor = sensors.PsUtilSensor()
     statusItems: Dict[str, AppKit.NSStatusItem] = {}
     cpuWarningsMenu: Optional[AppKit.NSMenu] = None
+
+    @objc.python_method
+    def pilToNSImage(self, img):
+        buf = io.BytesIO()
+        img.save(buf, format='PNG')
+        nsimg = AppKit.NSImage.alloc().initWithData_(
+            AppKit.NSData.dataWithBytes_length_(
+                buf.getvalue(), len(buf.getvalue())
+            )
+        )
+        del buf
+        nsimg.setSize_((img.size[0] / 2, img.size[1] / 2))
+        return nsimg
 
     @objc.python_method
     def addStatusItem(self, name: str) -> AppKit.NSStatusItem:
@@ -108,19 +108,6 @@ class AppDelegate(AppKit.NSObject):
         else:
             self.removeStatusItem('net')
 
-    # @objc.python_method
-    # def updateImage(self):
-    #     cpu_max = psUtilSensor.get_cpu_percent_max()
-    #     cpu_avg = psUtilSensor.get_cpu_percent_avg()
-    #     img = Image.new('RGBA', (120, 48), color='#00000000')
-    #     # font = ImageFont.truetype('Arial Unicode.ttf', 22)
-    #     font = ImageFont.truetype('Avenir.ttc', 22)
-    #     draw = ImageDraw.Draw(img)
-    #     draw.text((0, 0), f"CPU {int(cpu_max)} {int(cpu_avg)}", fill='#000000', font=font)
-    #     del draw
-    #     del font
-    #     self.statusItem.setImage_(pilToNSImage(img))
-
     def applicationDidFinishLaunching_(self, notification):
         try:
             self.timer = AppKit.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
@@ -130,66 +117,52 @@ class AppDelegate(AppKit.NSObject):
                 None,
                 True
             )
-
-            self.statusItem = AppKit.NSStatusBar.systemStatusBar().statusItemWithLength_(-1)
-            self.statusItem.setTitle_('Hello')
-            menu = AppKit.NSMenu.alloc().initWithTitle_("Menu")
-            self.statusItem.setMenu_(menu)
-            menuItem = AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                "Quit", None, '')
-            menuItem.setTarget_(appDelegate)
-            menuItem.setAction_('onQuit')
-            menu.addItem_(menuItem)
-
-            # touchbar.DFRSystemModalShowsCloseBoxWhenFrontMost(True)
-            # self.touchBarItem = AppKit.NSCustomTouchBarItem.alloc().initWithIdentifier_(
-            #     'test'
-            # )
-            # img = Image.new('RGBA', (120, 48), color='#00000000')
-            # font = ImageFont.truetype('Avenir.ttc', 44)
-            # draw = ImageDraw.Draw(img)
-            # draw.text((0, 0), f"Hello", fill='#ff00ff', font=font)
-            # del draw
-            # del font
-            # button = AppKit.NSButton.buttonWithImage_target_action_(
-            #     pilToNSImage(img), self, 'onquit'
-            # )
-            # # button = AppKit.NSButton.buttonWithTitle_target_action_(
-            # #     'XX', self, 'onquit'
-            # # )
-            # self.touchBarItem.setView_(button)
-            # AppKit.NSTouchBarItem.addSystemTrayItem_(self.touchBarItem)
-            # touchbar.DFRElementSetControlStripPresenceForIdentifier('test', True)
         except Exception:
             traceback.print_exc()
 
-    def onTimer(self):
+    def onTimer(self) -> None:
         try:
             self.sensor.refresh()
             self.updateCpuWarnings()
             self.updateDiskWarnings()
             self.updateNetWarnings()
-            # self.updateImage()
-            # print('virtual_memory', psutil.virtual_memory())
-            # print('disk_io_counters', psutil.disk_io_counters(True))
-            # print('net_io_counters', psutil.net_io_counters(True))
-            # print('cpu_freq', psutil.cpu_freq(True))
-            # print('cpu_percent', psutil.cpu_percent(0, True))
-            # img = Image.new('RGBA', (120, 48), color='#00000000')
-            # font = ImageFont.truetype('Avenir.ttc', 44)
-            # draw = ImageDraw.Draw(img)
-            # draw.text((0, 0), f"NEW", fill='#ff00ff', font=font)
-            # del draw
-            # del font
-            # self.touchBarItem.view().setImage_(pilToNSImage(img))
+            self.updateTouchbar()
         except Exception:
             traceback.print_exc()
 
-    def onQuit(self):
+    def onQuit(self) -> None:
         try:
             AppKit.NSApplication.sharedApplication().terminate_(None)
         except Exception:
             traceback.print_exc()
+
+    touchBarItem: Optional[AppKit.NSCustomTouchBarItem] = None
+    touchBarButton: Optional[AppKit.NSButton] = None
+
+    @objc.python_method
+    def updateTouchbar(self) -> None:
+        if not self.touchBarItem:
+            touchbar.DFRSystemModalShowsCloseBoxWhenFrontMost(True)
+            self.touchBarItem = AppKit.NSCustomTouchBarItem.alloc().initWithIdentifier_(
+                'test'
+            )
+            img = Image.new('RGBA', (120, 48), color='#00000000')
+            self.touchBarButton = AppKit.NSButton.buttonWithImage_target_action_(
+                self.pilToNSImage(img), self, 'onTouchBarButton'
+            )
+            self.touchBarItem.setView_(self.touchBarButton)
+            AppKit.NSTouchBarItem.addSystemTrayItem_(self.touchBarItem)
+            touchbar.DFRElementSetControlStripPresenceForIdentifier('test', True)
+
+        cpu_max = self.sensor.get_cpu_percent_max()
+        cpu_avg = self.sensor.get_cpu_percent_avg()
+        img = Image.new('RGBA', (120, 48), color='#00000000')
+        font = ImageFont.truetype('Avenir.ttc', 22)
+        draw = ImageDraw.Draw(img)
+        draw.text((0, 0), f"CPU {int(cpu_max)} {int(cpu_avg)}", fill='#ffffff', font=font)
+        del draw
+        del font
+        self.touchBarButton.setImage_(self.pilToNSImage(img))
 
 
 if __name__ == '__main__':
