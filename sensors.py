@@ -69,7 +69,7 @@ class PsUtilSensor:
         return max_dev
 
     def get_disk_write_bytes_per_sec(self, dev: str) -> float:
-        if self.disk_last is None:
+        if self.disk_last is None or dev not in self.disk_last:
             return 0
         return (
             (self.disk[dev].write_bytes - self.disk_last[dev].write_bytes)
@@ -77,7 +77,7 @@ class PsUtilSensor:
         )
 
     def get_disk_read_bytes_per_sec(self, dev: str) -> float:
-        if self.disk_last is None:
+        if self.disk_last is None or dev not in self.disk_last:
             return 0
         return (
             (self.disk[dev].read_bytes - self.disk_last[dev].read_bytes)
@@ -103,7 +103,7 @@ class PsUtilSensor:
         return max_dev
 
     def get_net_recv_bytes_per_sec(self, dev: str) -> float:
-        if self.net_last is None:
+        if self.net_last is None or dev not in self.net_last:
             return 0
         return (
             (self.net[dev].bytes_recv - self.net_last[dev].bytes_recv)
@@ -111,7 +111,7 @@ class PsUtilSensor:
         )
 
     def get_net_sent_bytes_per_sec(self, dev: str) -> float:
-        if self.net_last is None:
+        if self.net_last is None or dev not in self.net_last:
             return 0
         return (
             (self.net[dev].bytes_sent - self.net_last[dev].bytes_sent)
