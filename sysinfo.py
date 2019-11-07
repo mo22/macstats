@@ -8,8 +8,7 @@ if __name__ == '__main__':
     cpu = psutil.cpu_percent(0, True)
     cpu_max = max(cpu)
     cpu_avg = sum(cpu) / len(cpu)
-    print('cpu_max', cpu_max)
-    print('cpu_avg', cpu_avg)
+    print(f"cpu max {cpu_max}% | avg {cpu_avg}%")
 
 
 # get cpu usage
