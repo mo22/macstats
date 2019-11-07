@@ -139,6 +139,9 @@ class AppDelegate(AppKit.NSObject):
     touchBarItem: Optional[AppKit.NSCustomTouchBarItem] = None
     touchBarButton: Optional[AppKit.NSButton] = None
 
+    def onTouchBarButton(self) -> None:
+        AppKit.NSWorkspace.sharedWorkspace().launchApplication_('/System/Applications/Utilities/Activity Monitor.app')
+
     @objc.python_method
     def updateTouchbar(self) -> None:
         if not self.touchBarItem:
