@@ -49,6 +49,8 @@ class PsUtilSensor:
     def get_cpu_percent_avg(self) -> float:
         return sum(self.cpu_percent) / len(self.cpu_percent)
 
+    # @TODO: get_cpu_percent_top(self) -> None: # top process only?
+
     def get_disk_devs(self) -> List[str]:
         return self.disk.keys()
 
@@ -100,6 +102,7 @@ class PsUtilSensor:
         return max_dev
 
     def get_net_recv_bytes_per_sec(self, dev: str) -> float:
+        # @TODO: ema?
         if self.net_last is None:
             return 0
         return (
@@ -108,6 +111,7 @@ class PsUtilSensor:
         )
 
     def get_net_sent_bytes_per_sec(self, dev: str) -> float:
+        # @TODO: ema?
         if self.net_last is None:
             return 0
         return (
