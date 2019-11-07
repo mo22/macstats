@@ -10,7 +10,7 @@ import objc
 
 from PIL import Image, ImageDraw, ImageFont
 
-from typing import Dict
+from typing import Dict, Optional
 
 
 def pilToNSImage(img):
@@ -26,11 +26,11 @@ def pilToNSImage(img):
     return nsimg
 
 
-# protocols=[objc.protocolNamed('NSApplicationDelegate')] ?
 class AppDelegate(AppKit.NSObject):
     timer: AppKit.NSTimer
     sensor = sensors.PsUtilSensor()
     statusItems: Dict[str, AppKit.NSStatusItem] = {}
+    cpuWarningsMenu: Optional[AppKit.NSMenu] = None
 
     @objc.python_method
     def addStatusItem(self, name: str) -> AppKit.NSStatusItem:
@@ -45,16 +45,68 @@ class AppDelegate(AppKit.NSObject):
         self.statusItems.pop(name, None)
 
     @objc.python_method
-    def updateWarnings(self) -> None:
-        if True:
+    def updateCpuWarningsMenu(self) -> None:
+        statusItem = self.addStatusItem('cpu_percent')
+        if self.cpuWarningsMenu is None:
+            self.cpuWarningsMenu = AppKit.NSMenu.alloc().initWithTitle_('')
+        self.cpuWarningsMenu.removeAllItems()
+        for proc in self.sensor.get_processes_by_cpu():
+            if proc.cpu_percent < 5:
+                break
+            self.cpuWarningsMenu.addItem_(
+                AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                    f"{proc.cpu_percent:.0f}% {proc.process.name()}", None, ''
+                )
+            )
+        statusItem.setMenu_(self.cpuWarningsMenu)
+
+    @objc.python_method
+    def updateCpuWarnings(self) -> None:
+        if self.sensor.get_cpu_percent_max() > 75:
+            statusItem = self.addStatusItem('cpu_percent')
+            statusItem.setTitle_(f"cpu max {self.sensor.get_cpu_percent_max():.0f} %")
+            self.updateCpuWarningsMenu()
+        else:
             if self.sensor.get_cpu_percent_avg() > 75:
-                statusItem = self.addStatusItem('cpu_percent_avg')
-                statusItem.setTitle_(f"Avg Cpu: {self.sensor.get_cpu_percent_avg():.0f}%")
+                statusItem = self.addStatusItem('cpu_percent')
+                statusItem.setTitle_(f"cpu avg {self.sensor.get_cpu_percent_avg():.0f} %")
+                self.updateCpuWarningsMenu()
             else:
-                self.removeStatusItem('cpu_percent_avg')
-        if True:
-            if self.sensor.get_cpu_percent_max() > 75:
-                pass
+                self.removeStatusItem('cpu_percent')
+
+    @objc.python_method
+    def updateDiskWarnings(self) -> None:
+        dev = self.sensor.get_disk_dev_most_active()
+        if dev:
+            read = self.sensor.get_disk_read_bytes_per_sec(dev)
+            write = self.sensor.get_disk_write_bytes_per_sec(dev)
+            if write > 1024 * 1024:
+                statusItem = self.addStatusItem('disk')
+                statusItem.setTitle_(f"{dev} write {(write / 1024 / 1024):.0f} MB/s")
+            elif read > 1024 * 1024:
+                statusItem = self.addStatusItem('disk')
+                statusItem.setTitle_(f"{dev} read {(read / 1024 / 1024):.0f} MB/s")
+            else:
+                self.removeStatusItem('disk')
+        else:
+            self.removeStatusItem('disk')
+
+    @objc.python_method
+    def updateNetWarnings(self) -> None:
+        dev = self.sensor.get_net_dev_most_active()
+        if dev:
+            recv = self.sensor.get_net_recv_bytes_per_sec(dev)
+            sent = self.sensor.get_net_sent_bytes_per_sec(dev)
+            if recv > 1024 * 1024:
+                statusItem = self.addStatusItem('net')
+                statusItem.setTitle_(f"{dev} recv {(recv / 1024 / 1024 * 8):.0f} MBit/s")
+            elif sent > 1024 * 1024:
+                statusItem = self.addStatusItem('net')
+                statusItem.setTitle_(f"{dev} sent {(sent / 1024 / 1024 * 8):.0f} MBit/s")
+            else:
+                self.removeStatusItem('net')
+        else:
+            self.removeStatusItem('net')
 
     # @objc.python_method
     # def updateImage(self):
@@ -114,6 +166,9 @@ class AppDelegate(AppKit.NSObject):
     def onTimer(self):
         try:
             self.sensor.refresh()
+            self.updateCpuWarnings()
+            self.updateDiskWarnings()
+            self.updateNetWarnings()
             # self.updateImage()
             # print('virtual_memory', psutil.virtual_memory())
             # print('disk_io_counters', psutil.disk_io_counters(True))
@@ -132,11 +187,9 @@ class AppDelegate(AppKit.NSObject):
 
     def onQuit(self):
         try:
-            print('AppDelegate.onQuit')
             AppKit.NSApplication.sharedApplication().terminate_(None)
         except Exception:
             traceback.print_exc()
-
 
 
 if __name__ == '__main__':
