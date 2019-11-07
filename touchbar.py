@@ -1,8 +1,9 @@
 import AppKit
 import objc
 
-scope = {}
 AppKit.NSTouchBarItem
+
+scope = {}
 objc.objc.loadBundleFunctions(
     None,
     scope,
@@ -13,5 +14,4 @@ objc.objc.loadBundleFunctions(
 )
 
 DFRElementSetControlStripPresenceForIdentifier = scope['DFRElementSetControlStripPresenceForIdentifier']
-
 DFRSystemModalShowsCloseBoxWhenFrontMost = scope['DFRSystemModalShowsCloseBoxWhenFrontMost']
