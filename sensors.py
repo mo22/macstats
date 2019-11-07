@@ -1,9 +1,17 @@
 import time
 import psutil
-from typing import List
+from typing import List, NamedTuple, Optional
+
+
+class PsUtilProcess(NamedTuple):
+    process: psutil.Process
+    cpu_percent: Optional[float]
 
 
 class PsUtilSensor:
+    cpu_count_logical: int
+    cpu_count_physical: int
+
     def __init__(self):
         self.cpu_count_logical = psutil.cpu_count(True)
         self.cpu_count_physical = psutil.cpu_count(False)
@@ -26,10 +34,13 @@ class PsUtilSensor:
         def fetch_process(process: psutil.Process):
             cpu_percent = None
             try:
-                cpu_percent = process.cpu_percent
+                cpu_percent = process.cpu_percent()
             except Exception:
                 pass
-            return (process, cpu_percent)
+            return PsUtilProcess(
+                process=process,
+                cpu_percent=cpu_percent,
+            )
         self.processes = [fetch_process(process) for process in psutil.process_iter()]
 
     def get_cpu_percent_max(self) -> float:
