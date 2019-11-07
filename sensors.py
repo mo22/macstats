@@ -69,11 +69,10 @@ class PsUtilSensor:
         )
 
     def get_processes_by_cpu(self):
-        res = sorted([
-            (process, process.cpu_percent(None))
-            for process in self.processes
-        ], lambda i: i[1])
-        return res
+        return sorted(
+            [i for i in self.processes if i.cpu_percent is not None],
+            key=lambda i: -i.cpu_percent
+        )
 
 
 if __name__ == '__main__':
@@ -82,4 +81,4 @@ if __name__ == '__main__':
     sensor.refresh()
 
     from pprint import pprint
-    pprint(sensor.processes)
+    pprint(sensor.get_processes_by_cpu()[0:10])
