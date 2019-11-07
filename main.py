@@ -18,14 +18,16 @@ from typing import Dict, Optional
 class MovingAverage:
     seconds: float
     time: float = 0
-    value: float = 0
+    value: Optional[float] = None
 
     def __init__(self, seconds: float):
         self.seconds = seconds
 
     def __call__(self, value: float) -> float:
         t = time.time()
-        if self.time == 0:
+        if self.time is None:
+            self.value = value
+        elif value == 0:
             self.value = value
         else:
             exp = 1.0 / math.exp((t - self.time) / self.seconds)
