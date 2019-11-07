@@ -1,9 +1,9 @@
 import io
 import traceback
 
-import psutil
+import sensors
+import touchbar
 
-import objc
 import AppKit
 import PyObjCTools.AppHelper
 
@@ -11,23 +11,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 # https://psutil.readthedocs.io/en/release-2.2.1/#psutil.Process.cpu_percent
-
-
-if True:
-    def DFRElementSetControlStripPresenceForIdentifier(v1: str, v2: bool) -> None:
-        pass
-
-    def DFRSystemModalShowsCloseBoxWhenFrontMost(v1: bool) -> None:
-        pass
-
-    objc.objc.loadBundleFunctions(
-        None,
-        globals(),
-        [
-            ('DFRElementSetControlStripPresenceForIdentifier', objc._C_VOID + objc._C_ID + objc._C_BOOL),
-            ('DFRSystemModalShowsCloseBoxWhenFrontMost', objc._C_VOID + objc._C_BOOL),
-        ]
-    )
 
 
 def pilToNSImage(img):
@@ -44,10 +27,11 @@ def pilToNSImage(img):
 
 
 class AppDelegate(AppKit.NSObject):
+    sensor = sensors.PsUtilSensor()
+
     def updateImage(self):
-        cpu = psutil.cpu_percent(0, True)
-        cpu_max = max(cpu)
-        cpu_avg = sum(cpu) / len(cpu)
+        cpu_max = self.sensor.get_cpu_percent_max()
+        cpu_avg = self.sensor.get_cpu_percent_avg()
         img = Image.new('RGBA', (120, 48), color='#00000000')
         # font = ImageFont.truetype('Arial Unicode.ttf', 22)
         font = ImageFont.truetype('Avenir.ttc', 22)
@@ -94,7 +78,7 @@ class AppDelegate(AppKit.NSObject):
         )
 
         # https://github.com/a2/touch-baer/blob/master/TouchBarTest/AppDelegate.m
-        DFRSystemModalShowsCloseBoxWhenFrontMost(True)
+        touchbar.DFRSystemModalShowsCloseBoxWhenFrontMost(True)
         self.touchBarItem = AppKit.NSCustomTouchBarItem.alloc().initWithIdentifier_(
             'test'
         )
@@ -112,9 +96,10 @@ class AppDelegate(AppKit.NSObject):
         # )
         self.touchBarItem.setView_(button)
         AppKit.NSTouchBarItem.addSystemTrayItem_(self.touchBarItem)
-        DFRElementSetControlStripPresenceForIdentifier('test', True)
+        touchbar.DFRElementSetControlStripPresenceForIdentifier('test', True)
 
     def ontimer(self):
+        self.sensor.refresh()
         self.updateImage()
         # print('virtual_memory', psutil.virtual_memory())
         # print('disk_io_counters', psutil.disk_io_counters(True))
@@ -155,6 +140,8 @@ if __name__ == '__main__':
     app = AppKit.NSApplication.sharedApplication()
     app.setDelegate_(appDelegate)
     app.activateIgnoringOtherApps_(True)
+    # hide from dock
     app.setActivationPolicy_(AppKit.NSApplicationActivationPolicyAccessory)
+    # handle ctrl-c
     PyObjCTools.AppHelper.installMachInterrupt()
     PyObjCTools.AppHelper.runEventLoop()
