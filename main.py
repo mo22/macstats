@@ -47,6 +47,8 @@ class AppDelegate(AppKit.NSObject):
     ema_net_sent = MovingAverage(0.5)
     ema_net_recv = MovingAverage(0.5)
 
+    # convert -background none -density 192 activity.svg activity.png
+
     @objc.python_method
     def pil_to_nsimage(self, img, scale=0.5):
         buf = io.BytesIO()
@@ -149,10 +151,10 @@ class AppDelegate(AppKit.NSObject):
         status_item = self.add_status_item('main')
         print('blah', AppKit.NSSquareStatusItemLength)
 
-        image = AppKit.NSImage.alloc().initWithContentsOfFile_('AlertStopIcon.icns')
+        image = AppKit.NSImage.alloc().initWithContentsOfFile_('activity.png')
         # image = AppKit.NSImage.imageNamed_('AlertStopIcon')
         # print('test', image.size())
-        image.setSize_((20, 20))
+        image.setSize_((24, 24))
         # image.setIsTemplate_(True)
         status_item.setImage_(image)
         status_item.setTitle_('hello')
