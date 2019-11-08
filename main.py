@@ -10,9 +10,30 @@ import AppKit
 import PyObjCTools.AppHelper
 import objc
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageOps
 
 from typing import Dict, Optional
+
+
+def pil_to_nsimage(img: Image, scale=0.5):
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    nsimg = AppKit.NSImage.alloc().initWithData_(
+        AppKit.NSData.dataWithBytes_length_(
+            buf.getvalue(), len(buf.getvalue())
+        )
+    )
+    del buf
+    nsimg.setSize_((int(img.size[0] * scale), int(img.size[1] * scale)))
+    return nsimg
+
+
+def tint_image(img: Image, color: str) -> Image:
+    # hum?
+    r, g, b, alpha = img.split()
+    res = ImageOps.colorize(r, color, (255, 255, 0))
+    res.putalpha(alpha)
+    return res
 
 
 class MovingAverage:
@@ -47,28 +68,10 @@ class AppDelegate(AppKit.NSObject):
     ema_net_sent = MovingAverage(0.5)
     ema_net_recv = MovingAverage(0.5)
 
-    icon = Image.open('activity.png')
-
-    @objc.python_method
-    def pil_to_nsimage(self, img: Image, scale=0.5):
-        buf = io.BytesIO()
-        img.save(buf, format='PNG')
-        nsimg = AppKit.NSImage.alloc().initWithData_(
-            AppKit.NSData.dataWithBytes_length_(
-                buf.getvalue(), len(buf.getvalue())
-            )
-        )
-        del buf
-        nsimg.setSize_((int(img.size[0] * scale), int(img.size[1] * scale)))
-        return nsimg
-
-    @objc.python_method
-    def tint_image(self, img: Image, color: str) -> Image:
-        r, g, b, alpha = img.convert('RGBA').split()
-        gray = ImageOps.grayscale(img)
-        res = ImageOps.colorize(gray, (0, 0, 0, 0), color)
-        res.putalpha(alpha)
-        return res
+    icon_menu: Optional[AppKit.NSMenu] = None
+    icon_base = Image.open('activity.png')
+    icon_idle = pil_to_nsimage(Image.open('activity.png'))
+    icon_red = pil_to_nsimage(tint_image(icon_base, 'red'))
 
     @objc.python_method
     def add_status_item(self, name: str) -> AppKit.NSStatusItem:
@@ -156,10 +159,29 @@ class AppDelegate(AppKit.NSObject):
     @objc.python_method
     def update_icon(self) -> None:
         status_item = self.add_status_item('main')
-        # image = AppKit.NSImage.alloc().initWithContentsOfFile_('activity.png')
-        image = self.pil_to_nsimage(self.tint_image(self.icon, 'red'))
-        image.setSize_((20, 20))
-        status_item.setImage_(image)
+        status_item.setImage_(self.icon_red)
+        if self.icon_menu is None:
+            self.icon_menu = AppKit.NSMenu.alloc().initWithTitle_('')
+        self.icon_menu.removeAllItems()
+        for proc in self.sensor.get_processes_by_cpu():
+            if proc.cpu_percent < 5:
+                break
+            self.icon_menu.addItem_(
+                AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                    f"{proc.cpu_percent:.0f}% {proc.name}", None, ''
+                )
+            )
+        self.icon_menu.addItem_(
+            AppKit.NSMenuItem.separatorItem()
+        )
+        self.icon_menu.addItem_(
+            AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                'Quit', 'onQuit', ''
+            )
+        )
+
+        status_item.setMenu_(self.icon_menu)
+
         pass
 
     def applicationDidFinishLaunching_(self, notification):
@@ -171,6 +193,7 @@ class AppDelegate(AppKit.NSObject):
                 None,
                 True
             )
+            AppKit.NSRunLoop.mainRunLoop().addTimer_forMode_(self.timer, AppKit.NSRunLoopCommonModes)
             self.update_icon()
         except Exception:
             traceback.print_exc()
@@ -210,7 +233,7 @@ class AppDelegate(AppKit.NSObject):
     #         )
     #         img = Image.new('RGBA', (120, 48), color='#00000000')
     #         self.touchbar_button = AppKit.NSButton.buttonWithImage_target_action_(
-    #             self.pil_to_nsimage(img), self, 'onTouchBarButton'
+    #             pil_to_nsimage(img), self, 'onTouchBarButton'
     #         )
     #         self.touchbar_item.setView_(self.touchbar_button)
     #         AppKit.NSTouchBarItem.addSystemTrayItem_(self.touchbar_item)
@@ -224,7 +247,7 @@ class AppDelegate(AppKit.NSObject):
     #     draw.text((0, 0), f"CPU {int(cpu_max)} {int(cpu_avg)}", fill='#ffffff', font=font)
     #     del draw
     #     del font
-    #     self.touchbar_button.setImage_(self.pil_to_nsimage(img))
+    #     self.touchbar_button.setImage_(pil_to_nsimage(img))
 
 
 if __name__ == '__main__':
