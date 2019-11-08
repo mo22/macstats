@@ -10,7 +10,7 @@ import AppKit
 import PyObjCTools.AppHelper
 import objc
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from typing import Dict, Optional
 
@@ -50,7 +50,7 @@ class AppDelegate(AppKit.NSObject):
     icon = Image.open('activity.png')
 
     @objc.python_method
-    def pil_to_nsimage(self, img, scale=0.5):
+    def pil_to_nsimage(self, img: Image, scale=0.5):
         buf = io.BytesIO()
         img.save(buf, format='PNG')
         nsimg = AppKit.NSImage.alloc().initWithData_(
@@ -61,6 +61,14 @@ class AppDelegate(AppKit.NSObject):
         del buf
         nsimg.setSize_((int(img.size[0] * scale), int(img.size[1] * scale)))
         return nsimg
+
+    @objc.python_method
+    def tint_image(self, img: Image, color: str) -> Image:
+        r, g, b, alpha = img.convert('RGBA').split()
+        gray = ImageOps.grayscale(img)
+        res = ImageOps.colorize(gray, (0, 0, 0, 0), color)
+        res.putalpha(alpha)
+        return res
 
     @objc.python_method
     def add_status_item(self, name: str) -> AppKit.NSStatusItem:
@@ -149,7 +157,7 @@ class AppDelegate(AppKit.NSObject):
     def update_icon(self) -> None:
         status_item = self.add_status_item('main')
         # image = AppKit.NSImage.alloc().initWithContentsOfFile_('activity.png')
-        image = self.pil_to_nsimage(self.icon)
+        image = self.pil_to_nsimage(self.tint_image(self.icon, 'red'))
         image.setSize_((20, 20))
         status_item.setImage_(image)
         pass
