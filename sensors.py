@@ -5,6 +5,7 @@ from typing import List, NamedTuple, Optional
 
 class PsUtilProcess(NamedTuple):
     process: psutil.Process
+    name: str
     cpu_percent: Optional[float]
 
 
@@ -39,6 +40,7 @@ class PsUtilSensor:
                 pass
             return PsUtilProcess(
                 process=process,
+                name=process.name(),
                 cpu_percent=cpu_percent,
             )
         self.processes = [fetch_process(process) for process in psutil.process_iter()]

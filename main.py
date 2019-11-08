@@ -4,13 +4,13 @@ import time
 import math
 
 import sensors
-import touchbar
+# import touchbar
 
 import AppKit
 import PyObjCTools.AppHelper
 import objc
 
-from PIL import Image, ImageDraw, ImageFont
+# from PIL import Image, ImageDraw, ImageFont
 
 from typing import Dict, Optional
 
@@ -83,7 +83,7 @@ class AppDelegate(AppKit.NSObject):
                 break
             self.cpu_warnings_menu.addItem_(
                 AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                    f"{proc.cpu_percent:.0f}% {proc.process.name()}", None, ''
+                    f"{proc.cpu_percent:.0f}% {proc.name}", None, ''
                 )
             )
         status_item.setMenu_(self.cpu_warnings_menu)
@@ -120,9 +120,9 @@ class AppDelegate(AppKit.NSObject):
             status_item.setTitle_(f"{dev} read {(read / 1024 / 1024):.0f} MB/s")
         else:
             self.remove_status_item('disk')
-        if status_item:
-            status_item.setTarget_(self)
-            status_item.setAction_('onTouchBarButton')
+        # if status_item:
+        #     status_item.setTarget_(self)
+        #     status_item.setAction_('onTouchBarButton')
 
     @objc.python_method
     def update_net_warnings(self) -> None:
@@ -139,9 +139,9 @@ class AppDelegate(AppKit.NSObject):
             status_item.setTitle_(f"{dev} sent {(sent / 1024 / 1024 * 8):.0f} MBit/s")
         else:
             self.remove_status_item('net')
-        if status_item:
-            status_item.setTarget_(self)
-            status_item.setAction_('onTouchBarButton')
+        # if status_item:
+        #     status_item.setTarget_(self)
+        #     status_item.setAction_('onTouchBarButton')
 
     def applicationDidFinishLaunching_(self, notification):
         try:
@@ -161,7 +161,7 @@ class AppDelegate(AppKit.NSObject):
             self.update_cpu_warnings()
             self.update_disk_warnings()
             self.update_net_warnings()
-            self.update_touchbar()
+            # self.update_touchbar()
         except Exception:
             traceback.print_exc()
 
@@ -171,36 +171,36 @@ class AppDelegate(AppKit.NSObject):
         except Exception:
             traceback.print_exc()
 
-    touchbar_item: Optional[AppKit.NSCustomTouchBarItem] = None
-    touchbar_button: Optional[AppKit.NSButton] = None
-
-    def onTouchBarButton(self) -> None:
-        AppKit.NSWorkspace.sharedWorkspace().launchApplication_('/System/Applications/Utilities/Activity Monitor.app')
-
-    @objc.python_method
-    def update_touchbar(self) -> None:
-        if not self.touchbar_item:
-            touchbar.DFRSystemModalShowsCloseBoxWhenFrontMost(True)
-            self.touchbar_item = AppKit.NSCustomTouchBarItem.alloc().initWithIdentifier_(
-                'test'
-            )
-            img = Image.new('RGBA', (120, 48), color='#00000000')
-            self.touchbar_button = AppKit.NSButton.buttonWithImage_target_action_(
-                self.pil_to_nsimage(img), self, 'onTouchBarButton'
-            )
-            self.touchbar_item.setView_(self.touchbar_button)
-            AppKit.NSTouchBarItem.addSystemTrayItem_(self.touchbar_item)
-            touchbar.DFRElementSetControlStripPresenceForIdentifier('test', True)
-
-        cpu_max = self.sensor.get_cpu_percent_max()
-        cpu_avg = self.sensor.get_cpu_percent_avg()
-        img = Image.new('RGBA', (120, 48), color='#00000000')
-        font = ImageFont.truetype('Avenir.ttc', 22)
-        draw = ImageDraw.Draw(img)
-        draw.text((0, 0), f"CPU {int(cpu_max)} {int(cpu_avg)}", fill='#ffffff', font=font)
-        del draw
-        del font
-        self.touchbar_button.setImage_(self.pil_to_nsimage(img))
+    # touchbar_item: Optional[AppKit.NSCustomTouchBarItem] = None
+    # touchbar_button: Optional[AppKit.NSButton] = None
+    #
+    # def onTouchBarButton(self) -> None:
+    #     AppKit.NSWorkspace.sharedWorkspace().launchApplication_('/System/Applications/Utilities/Activity Monitor.app')
+    #
+    # @objc.python_method
+    # def update_touchbar(self) -> None:
+    #     if not self.touchbar_item:
+    #         touchbar.DFRSystemModalShowsCloseBoxWhenFrontMost(True)
+    #         self.touchbar_item = AppKit.NSCustomTouchBarItem.alloc().initWithIdentifier_(
+    #             'test'
+    #         )
+    #         img = Image.new('RGBA', (120, 48), color='#00000000')
+    #         self.touchbar_button = AppKit.NSButton.buttonWithImage_target_action_(
+    #             self.pil_to_nsimage(img), self, 'onTouchBarButton'
+    #         )
+    #         self.touchbar_item.setView_(self.touchbar_button)
+    #         AppKit.NSTouchBarItem.addSystemTrayItem_(self.touchbar_item)
+    #         touchbar.DFRElementSetControlStripPresenceForIdentifier('test', True)
+    #
+    #     cpu_max = self.sensor.get_cpu_percent_max()
+    #     cpu_avg = self.sensor.get_cpu_percent_avg()
+    #     img = Image.new('RGBA', (120, 48), color='#00000000')
+    #     font = ImageFont.truetype('Avenir.ttc', 22)
+    #     draw = ImageDraw.Draw(img)
+    #     draw.text((0, 0), f"CPU {int(cpu_max)} {int(cpu_avg)}", fill='#ffffff', font=font)
+    #     del draw
+    #     del font
+    #     self.touchbar_button.setImage_(self.pil_to_nsimage(img))
 
 
 if __name__ == '__main__':
