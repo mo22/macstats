@@ -11,4 +11,7 @@ setup(
         'psutil',
         'pillow',
     ],
+    data_files=[
+        'activity.png',
+    ],
 )
