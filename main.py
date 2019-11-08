@@ -48,7 +48,7 @@ class AppDelegate(AppKit.NSObject):
     ema_net_recv = MovingAverage(0.5)
 
     @objc.python_method
-    def pil_to_nsimage(self, img):
+    def pil_to_nsimage(self, img, scale=0.5):
         buf = io.BytesIO()
         img.save(buf, format='PNG')
         nsimg = AppKit.NSImage.alloc().initWithData_(
@@ -57,7 +57,7 @@ class AppDelegate(AppKit.NSObject):
             )
         )
         del buf
-        nsimg.setSize_((img.size[0] / 2, img.size[1] / 2))
+        nsimg.setSize_((int(img.size[0] * scale), int(img.size[1] * scale)))
         return nsimg
 
     @objc.python_method
@@ -143,25 +143,45 @@ class AppDelegate(AppKit.NSObject):
         #     status_item.setTarget_(self)
         #     status_item.setAction_('onTouchBarButton')
 
+    @objc.python_method
+    def update_icon(self) -> None:
+        print('update_icon')
+        status_item = self.add_status_item('main')
+        print('blah', AppKit.NSSquareStatusItemLength)
+
+        image = AppKit.NSImage.alloc().initWithContentsOfFile_('AlertStopIcon.icns')
+        # image = AppKit.NSImage.imageNamed_('AlertStopIcon')
+        # print('test', image.size())
+        image.setSize_((20, 20))
+        # image.setIsTemplate_(True)
+        status_item.setImage_(image)
+        status_item.setTitle_('hello')
+        pass
+
     def applicationDidFinishLaunching_(self, notification):
         try:
             self.timer = AppKit.NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-                0.5,
+                2,
                 self,
                 'onTimer',
                 None,
                 True
             )
+            self.update_icon()
         except Exception:
             traceback.print_exc()
 
     def onTimer(self) -> None:
         try:
             self.sensor.refresh()
+
+            # create status item with image?
+
             self.update_cpu_warnings()
             self.update_disk_warnings()
             self.update_net_warnings()
             # self.update_touchbar()
+            self.update_icon()
         except Exception:
             traceback.print_exc()
 

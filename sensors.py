@@ -34,13 +34,15 @@ class PsUtilSensor:
 
         def fetch_process(process: psutil.Process):
             cpu_percent = None
+            name = None
             try:
                 cpu_percent = process.cpu_percent()
+                name = process.name()
             except Exception:
                 pass
             return PsUtilProcess(
                 process=process,
-                name=process.name(),
+                name=name,
                 cpu_percent=cpu_percent,
             )
         self.processes = [fetch_process(process) for process in psutil.process_iter()]
