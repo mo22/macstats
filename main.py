@@ -10,7 +10,7 @@ import AppKit
 import PyObjCTools.AppHelper
 import objc
 
-# from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 from typing import Dict, Optional
 
@@ -47,7 +47,7 @@ class AppDelegate(AppKit.NSObject):
     ema_net_sent = MovingAverage(0.5)
     ema_net_recv = MovingAverage(0.5)
 
-    # convert -background none -density 192 activity.svg activity.png
+    icon = Image.open('activity.png')
 
     @objc.python_method
     def pil_to_nsimage(self, img, scale=0.5):
@@ -147,17 +147,11 @@ class AppDelegate(AppKit.NSObject):
 
     @objc.python_method
     def update_icon(self) -> None:
-        print('update_icon')
         status_item = self.add_status_item('main')
-        print('blah', AppKit.NSSquareStatusItemLength)
-
-        image = AppKit.NSImage.alloc().initWithContentsOfFile_('activity.png')
-        # image = AppKit.NSImage.imageNamed_('AlertStopIcon')
-        # print('test', image.size())
-        image.setSize_((24, 24))
-        # image.setIsTemplate_(True)
+        # image = AppKit.NSImage.alloc().initWithContentsOfFile_('activity.png')
+        image = self.pil_to_nsimage(self.icon)
+        image.setSize_((20, 20))
         status_item.setImage_(image)
-        status_item.setTitle_('hello')
         pass
 
     def applicationDidFinishLaunching_(self, notification):
