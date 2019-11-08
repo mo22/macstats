@@ -159,10 +159,68 @@ class AppDelegate(AppKit.NSObject):
     @objc.python_method
     def update_icon(self) -> None:
         status_item = self.add_status_item('main')
-        status_item.setImage_(self.icon_red)
+        icon = self.icon_idle
+
         if self.icon_menu is None:
             self.icon_menu = AppKit.NSMenu.alloc().initWithTitle_('')
         self.icon_menu.removeAllItems()
+
+        if True:
+            if self.sensor.get_cpu_percent_max() > 75:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"CPU Core {self.sensor.get_cpu_percent_max()}%", None, ''
+                    )
+                )
+                icon = self.icon_red
+            if self.sensor.get_cpu_percent_avg() > 75:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"CPU Total {self.sensor.get_cpu_percent_avg()}%", None, ''
+                    )
+                )
+                icon = self.icon_red
+            if self.sensor.get_cpu_percent_top() > 50:
+                icon = self.icon_red
+                pass
+
+        if True:
+            dev = self.sensor.get_disk_dev_most_active()
+            read = self.ema_disk_read(self.sensor.get_disk_read_bytes_per_sec(dev) if dev else 0)
+            write = self.ema_disk_write(self.sensor.get_disk_write_bytes_per_sec(dev) if dev else 0)
+            if read > 1024 * 1024:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"{dev} read {(read / 1024 / 1024):.0f} MB/s", None, ''
+                    )
+                )
+            if write > 1024 * 1024:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"{dev} write {(write / 1024 / 1024):.0f} MB/s", None, ''
+                    )
+                )
+        if True:
+            dev = self.sensor.get_net_dev_most_active()
+            recv = self.ema_net_recv(self.sensor.get_net_recv_bytes_per_sec(dev) if dev else 0)
+            sent = self.ema_net_sent(self.sensor.get_net_sent_bytes_per_sec(dev) if dev else 0)
+            if recv > 1024 * 1024:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"{dev} recv {(recv / 1024 / 1024 * 8):.0f} MBit/s", None, ''
+                    )
+                )
+            if sent > 1024 * 1024:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"{dev} sent {(sent / 1024 / 1024 * 8):.0f} MBit/s", None, ''
+                    )
+                )
+
+        self.icon_menu.addItem_(
+            AppKit.NSMenuItem.separatorItem()
+        )
+
         for proc in self.sensor.get_processes_by_cpu():
             if proc.cpu_percent < 5:
                 break
@@ -171,9 +229,11 @@ class AppDelegate(AppKit.NSObject):
                     f"{proc.cpu_percent:.0f}% {proc.name}", None, ''
                 )
             )
+
         self.icon_menu.addItem_(
             AppKit.NSMenuItem.separatorItem()
         )
+
         self.icon_menu.addItem_(
             AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
                 'Quit', 'onQuit', ''
@@ -181,8 +241,7 @@ class AppDelegate(AppKit.NSObject):
         )
 
         status_item.setMenu_(self.icon_menu)
-
-        pass
+        status_item.setImage_(icon)
 
     def applicationDidFinishLaunching_(self, notification):
         try:
@@ -201,12 +260,9 @@ class AppDelegate(AppKit.NSObject):
     def onTimer(self) -> None:
         try:
             self.sensor.refresh()
-
-            # create status item with image?
-
-            self.update_cpu_warnings()
-            self.update_disk_warnings()
-            self.update_net_warnings()
+            # self.update_cpu_warnings()
+            # self.update_disk_warnings()
+            # self.update_net_warnings()
             # self.update_touchbar()
             self.update_icon()
         except Exception:
