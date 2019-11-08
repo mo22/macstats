@@ -222,6 +222,16 @@ class AppDelegate(AppKit.NSObject):
                 )
                 icon = self.icon_red
 
+        if True:
+            if self.sensor.virtual_memory.percent > 80:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"Memory {self.sensor.virtual_memory.percent}%", None, ''
+                    )
+                )
+            if self.sensor.virtual_memory.percent > 90:
+                icon = self.icon_red
+
         self.icon_menu.addItem_(
             AppKit.NSMenuItem.separatorItem()
         )
