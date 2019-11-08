@@ -31,7 +31,7 @@ def pil_to_nsimage(img: Image, scale=0.5):
 def tint_image(img: Image, color: str) -> Image:
     # hum?
     r, g, b, alpha = img.split()
-    res = ImageOps.colorize(r, color, (255, 255, 0))
+    res = ImageOps.colorize(r, color, color)
     res.putalpha(alpha)
     return res
 
@@ -72,6 +72,7 @@ class AppDelegate(AppKit.NSObject):
     icon_base = Image.open('activity.png')
     icon_idle = pil_to_nsimage(Image.open('activity.png'))
     icon_red = pil_to_nsimage(tint_image(icon_base, 'red'))
+    icon_orange = pil_to_nsimage(tint_image(icon_base, 'orange'))
 
     @objc.python_method
     def add_status_item(self, name: str) -> AppKit.NSStatusItem:
@@ -166,6 +167,46 @@ class AppDelegate(AppKit.NSObject):
         self.icon_menu.removeAllItems()
 
         if True:
+            dev = self.sensor.get_disk_dev_most_active()
+            read = self.ema_disk_read(self.sensor.get_disk_read_bytes_per_sec(dev) if dev else 0)
+            write = self.ema_disk_write(self.sensor.get_disk_write_bytes_per_sec(dev) if dev else 0)
+            if read > 1024 * 1024:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"{dev} read {(read / 1024 / 1024):.0f} MB/s", None, ''
+                    )
+                )
+                icon = self.icon_orange
+            if write > 1024 * 1024:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"{dev} write {(write / 1024 / 1024):.0f} MB/s", None, ''
+                    )
+                )
+                icon = self.icon_orange
+
+        if True:
+            dev = self.sensor.get_net_dev_most_active()
+            recv = self.ema_net_recv(self.sensor.get_net_recv_bytes_per_sec(dev) if dev else 0)
+            sent = self.ema_net_sent(self.sensor.get_net_sent_bytes_per_sec(dev) if dev else 0)
+            if recv > 1024 * 1024:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"{dev} recv {(recv / 1024 / 1024 * 8):.0f} MBit/s", None, ''
+                    )
+                )
+                icon = self.icon_orange
+            if sent > 1024 * 1024:
+                self.icon_menu.addItem_(
+                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                        f"{dev} sent {(sent / 1024 / 1024 * 8):.0f} MBit/s", None, ''
+                    )
+                )
+                icon = self.icon_orange
+
+        if True:
+            if self.sensor.get_cpu_percent_top() > 50:
+                icon = self.icon_orange
             if self.sensor.get_cpu_percent_max() > 75:
                 self.icon_menu.addItem_(
                     AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
@@ -180,42 +221,6 @@ class AppDelegate(AppKit.NSObject):
                     )
                 )
                 icon = self.icon_red
-            if self.sensor.get_cpu_percent_top() > 50:
-                icon = self.icon_red
-                pass
-
-        if True:
-            dev = self.sensor.get_disk_dev_most_active()
-            read = self.ema_disk_read(self.sensor.get_disk_read_bytes_per_sec(dev) if dev else 0)
-            write = self.ema_disk_write(self.sensor.get_disk_write_bytes_per_sec(dev) if dev else 0)
-            if read > 1024 * 1024:
-                self.icon_menu.addItem_(
-                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                        f"{dev} read {(read / 1024 / 1024):.0f} MB/s", None, ''
-                    )
-                )
-            if write > 1024 * 1024:
-                self.icon_menu.addItem_(
-                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                        f"{dev} write {(write / 1024 / 1024):.0f} MB/s", None, ''
-                    )
-                )
-        if True:
-            dev = self.sensor.get_net_dev_most_active()
-            recv = self.ema_net_recv(self.sensor.get_net_recv_bytes_per_sec(dev) if dev else 0)
-            sent = self.ema_net_sent(self.sensor.get_net_sent_bytes_per_sec(dev) if dev else 0)
-            if recv > 1024 * 1024:
-                self.icon_menu.addItem_(
-                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                        f"{dev} recv {(recv / 1024 / 1024 * 8):.0f} MBit/s", None, ''
-                    )
-                )
-            if sent > 1024 * 1024:
-                self.icon_menu.addItem_(
-                    AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                        f"{dev} sent {(sent / 1024 / 1024 * 8):.0f} MBit/s", None, ''
-                    )
-                )
 
         self.icon_menu.addItem_(
             AppKit.NSMenuItem.separatorItem()
