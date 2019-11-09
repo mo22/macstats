@@ -210,14 +210,14 @@ class AppDelegate(AppKit.NSObject):
             if self.sensor.get_cpu_percent_max() > 75:
                 self.icon_menu.addItem_(
                     AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                        f"CPU Core {self.sensor.get_cpu_percent_max()}%", None, ''
+                        f"CPU Core {self.sensor.get_cpu_percent_max():.0f}%", None, ''
                     )
                 )
                 icon = self.icon_red
             if self.sensor.get_cpu_percent_avg() > 75:
                 self.icon_menu.addItem_(
                     AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                        f"CPU Total {self.sensor.get_cpu_percent_avg()}%", None, ''
+                        f"CPU Total {self.sensor.get_cpu_percent_avg():.0f}%", None, ''
                     )
                 )
                 icon = self.icon_red
@@ -226,7 +226,7 @@ class AppDelegate(AppKit.NSObject):
             if self.sensor.virtual_memory.percent > 80:
                 self.icon_menu.addItem_(
                     AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                        f"Memory {self.sensor.virtual_memory.percent}%", None, ''
+                        f"Memory {self.sensor.virtual_memory.percent:.0f}%", None, ''
                     )
                 )
             if self.sensor.virtual_memory.percent > 90:
