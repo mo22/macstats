@@ -14,4 +14,9 @@ setup(
     data_files=[
         'activity.png',
     ],
+    options=dict(
+        py2app=dict(
+            packages=['PIL'],
+        ),
+    ),
 )

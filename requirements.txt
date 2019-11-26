@@ -1,3 +1,0 @@
-pyobjc-framework-cocoa
-psutil
-pillow
