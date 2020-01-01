@@ -16,7 +16,11 @@ setup(
     ],
     options=dict(
         py2app=dict(
-            packages=['PIL'],
+            packages=[],
+            # packages=['PIL'],
         ),
     ),
 )
+
+
+# /Users/mmoeller/workspace/macstats/dist/macstats.app/Contents/Resources/lib/python3.7/PIL/.dylibs/liblcms2.2.dylib
