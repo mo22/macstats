@@ -1,8 +1,9 @@
+#!/usr/bin/env python3
 from setuptools import setup
 
 setup(
     name='macstats',
-    version='0.1',
+    version='0.2',
     author_email='mm@mxs.de',
     app=['main.py'],
     setup_requires=[
@@ -16,11 +17,10 @@ setup(
     ],
     options=dict(
         py2app=dict(
-            packages=[],
-            # packages=['PIL'],
+            packages=['PIL'],
+            plist=dict(
+                LSUIElement=1,
+            ),
         ),
     ),
 )
-
-
-# /Users/mmoeller/workspace/macstats/dist/macstats.app/Contents/Resources/lib/python3.7/PIL/.dylibs/liblcms2.2.dylib

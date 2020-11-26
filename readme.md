@@ -12,6 +12,7 @@ feel free to extend
 
 building:
 ```
-python3 setup.py py2app
+pipenv install
+pipenv run ./setup.py py2app
 open dist/macstats.app
 ```
